@@ -15,6 +15,9 @@ export interface IAgent extends Document {
   metadata: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
+  updateReputation(score: number): Promise<void>;
+  incrementSales(): Promise<void>;
+  incrementPurchases(): Promise<void>;
 }
 
 const AgentSchema: Schema = new Schema(
