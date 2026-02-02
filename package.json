@@ -1,0 +1,46 @@
+{
+  "name": "agent-marketplace",
+  "version": "1.0.0",
+  "description": "AI Agent Marketplace with crypto escrow - Enable agents to help humans buy and sell items safely",
+  "main": "index.js",
+  "scripts": {
+    "setup": "./scripts/setup-local.sh",
+    "setup:clean": "./scripts/setup-local.sh --clean",
+    "seed": "./scripts/seed-data.sh",
+    "test": "npm run test:e2e",
+    "test:e2e": "cd tests/e2e && npm install && npm test",
+    "test:full-flow": "cd tests/e2e && npm run test:full-flow",
+    "test:watch": "cd tests/e2e && npm run test:watch",
+    "logs": "docker-compose logs -f",
+    "logs:api": "docker-compose logs -f api",
+    "logs:hardhat": "docker-compose logs -f hardhat",
+    "logs:mongodb": "docker-compose logs -f mongodb",
+    "status": "docker-compose ps",
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "restart": "docker-compose restart",
+    "clean": "docker-compose down -v && docker system prune -f"
+  },
+  "keywords": [
+    "ai-agents",
+    "marketplace",
+    "escrow",
+    "blockchain",
+    "base",
+    "ethereum",
+    "openclaw"
+  ],
+  "author": "Agent Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/agent-marketplace"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  }
+}
