@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # MongoDB for API data storage
+  mongodb:
+    image: mongo:7.0
+    container_name: marketplace-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: marketplace
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Hardhat node (Base fork for local testing)
+  hardhat:
+    image: node:20-alpine
+    container_name: marketplace-hardhat
+    working_dir: /app
+    ports:
+      - "8545:8545"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./contracts:/app
+      - hardhat_cache:/app/cache
+      - hardhat_artifacts:/app/artifacts
+    command: >
+      sh -c "
+        if [ ! -d node_modules ]; then
+          npm install --silent;
+        fi &&
+        npx hardhat node --hostname 0.0.0.0
+      "
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: marketplace-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Server (starts after contracts are deployed)
+  api:
+    image: node:20-alpine
+    container_name: marketplace-api
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/marketplace?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - RPC_URL=http://hardhat:8545
+      - CHAIN_ID=84532
+    volumes:
+      - ./api:/app
+      - api_node_modules:/app/node_modules
+    command: >
+      sh -c "
+        echo 'Waiting for dependencies...' &&
+        sleep 5 &&
+        if [ ! -d node_modules ]; then
+          npm install --silent;
+        fi &&
+        if [ -f src/server.ts ]; then
+          npm run dev;
+        else
+          echo 'API source not found, waiting...' &&
+          tail -f /dev/null;
+        fi
+      "
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      hardhat:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  hardhat_cache:
+    driver: local
+  hardhat_artifacts:
+    driver: local
+  api_node_modules:
+    driver: local
