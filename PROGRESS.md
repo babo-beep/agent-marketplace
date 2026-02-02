@@ -1,7 +1,8 @@
 # Agent Marketplace - Build Progress
 
 **Started**: 2026-02-02 01:37 CET  
-**Deadline**: 2026-02-02 09:00 CET (~7.5 hours)
+**Deadline**: 2026-02-02 09:00 CET (~7.5 hours)  
+**GitHub**: https://github.com/babo-beep/agent-marketplace
 
 ## Active Sub-Agents
 
